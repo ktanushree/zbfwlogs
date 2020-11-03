@@ -78,6 +78,7 @@ ZBFW Rule specific information:
 #### Version
 | Version | Build | Changes |
 | ------- | ----- | ------- |
+| **1.0.1** | **b2** | Chunk rules into list of 10 for optimizing flows query |
 | **1.0.0** | **b1** | Initial Release. |
 
 

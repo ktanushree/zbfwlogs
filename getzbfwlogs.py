@@ -252,68 +252,74 @@ def getzbfwlogs(cgx_session, siteid, ruleidlist, action, starttime, endtime):
     print("INFO: Getting ZBFW logs...")
     start_time_iso = starttime.isoformat() + "Z"
     end_time_iso = endtime.isoformat() + "Z"
-
-    if action == "any":
-        data = {
-            "start_time": start_time_iso,
-            "end_time": end_time_iso,
-            "debug_level": "all",
-            "filter": {
-                "security_policy_rule": ruleidlist,
-                "site": [siteid]
-            }
-        }
-
-    else:
-        data = {
-            "start_time": start_time_iso,
-            "end_time": end_time_iso,
-            "debug_level": "all",
-            "filter": {
-                "security_policy_rule": ruleidlist,
-                "security_policy_rule_action": action,
-                "site": [siteid]
-            }
-        }
-
-    resp = cgx_session.post.flows_monitor(data=data, api_version="v3.5")
     zbfwrules = pd.DataFrame()
-    if resp.cgx_status:
-        flowdata = resp.cgx_content.get("flows", None)
 
-        flows = flowdata.get("items", None)
+    #
+    # Chunk Rule IDs into list of 10 IDs
+    #
+    tmp = [ruleidlist[i:i + 10] for i in range(0, len(ruleidlist), 10)]
+    for item in tmp:
 
-        for flow in flows:
-            security_policy_rules = flow.get("security_policy_rules", None)
-            rulesdf = pd.DataFrame(security_policy_rules)
+        if action == "any":
+            data = {
+                "start_time": start_time_iso,
+                "end_time": end_time_iso,
+                "debug_level": "all",
+                "filter": {
+                    "security_policy_rule": item,
+                    "site": [siteid]
+                }
+            }
 
-            sourcezones = list(rulesdf.security_source_zone_id.unique())
-            destzones = list(rulesdf.security_destination_zone_id.unique())
-            actions = list(rulesdf.security_policy_rule_action.unique())
-            rules = list(rulesdf.security_policy_rule_id.unique())
+        else:
+            data = {
+                "start_time": start_time_iso,
+                "end_time": end_time_iso,
+                "debug_level": "all",
+                "filter": {
+                    "security_policy_rule": item,
+                    "security_policy_rule_action": action,
+                    "site": [siteid]
+                }
+            }
 
-            zbfwrules = zbfwrules.append({"element_id": flow["element_id"],
-                                          "source_ip": flow["source_ip"],
-                                          "source_port": flow["source_port"],
-                                          "destination_ip": flow["destination_ip"],
-                                          "destination_port": flow["destination_port"],
-                                          "protocol": flow["protocol"],
-                                          "app_id": flow["app_id"],
-                                          "app_list": flow["sec_fc_app_id"],
-                                          "flow_start_time_ms": flow["flow_start_time_ms"],
-                                          "flow_end_time_ms": flow["flow_end_time_ms"],
-                                          "bytes": flow["bytes_c2s"] + flow["bytes_s2c"],
-                                          "security_destination_zone_id": destzones,
-                                          "security_source_zone_id": sourcezones,
-                                          "security_policy_rule_id": rules,
-                                          "actionlist": actions,
-                                          "protocol_num": flow["protocol"],
-                                          "lan_to_wan": flow["lan_to_wan"]
-                                          }, ignore_index=True)
+        resp = cgx_session.post.flows_monitor(data=data, api_version="v3.5")
+        if resp.cgx_status:
+            flowdata = resp.cgx_content.get("flows", None)
 
-    else:
-        print("ERR: Could not retrieve flow records")
-        cloudgenix.jd_detailed(resp)
+            flows = flowdata.get("items", None)
+
+            for flow in flows:
+                security_policy_rules = flow.get("security_policy_rules", None)
+                rulesdf = pd.DataFrame(security_policy_rules)
+
+                sourcezones = list(rulesdf.security_source_zone_id.unique())
+                destzones = list(rulesdf.security_destination_zone_id.unique())
+                actions = list(rulesdf.security_policy_rule_action.unique())
+                rules = list(rulesdf.security_policy_rule_id.unique())
+
+                zbfwrules = zbfwrules.append({"element_id": flow["element_id"],
+                                              "source_ip": flow["source_ip"],
+                                              "source_port": flow["source_port"],
+                                              "destination_ip": flow["destination_ip"],
+                                              "destination_port": flow["destination_port"],
+                                              "protocol": flow["protocol"],
+                                              "app_id": flow["app_id"],
+                                              "app_list": flow["sec_fc_app_id"],
+                                              "flow_start_time_ms": flow["flow_start_time_ms"],
+                                              "flow_end_time_ms": flow["flow_end_time_ms"],
+                                              "bytes": flow["bytes_c2s"] + flow["bytes_s2c"],
+                                              "security_destination_zone_id": destzones,
+                                              "security_source_zone_id": sourcezones,
+                                              "security_policy_rule_id": rules,
+                                              "actionlist": actions,
+                                              "protocol_num": flow["protocol"],
+                                              "lan_to_wan": flow["lan_to_wan"]
+                                              }, ignore_index=True)
+
+        else:
+            print("ERR: Could not retrieve flow records")
+            cloudgenix.jd_detailed(resp)
 
     return zbfwrules
 
