@@ -3,6 +3,7 @@
 CGNX script to download ZBFW logs into a CSV
 
 tanushree@cloudgenix.com
+tkamath@paloaltonetworks.com
 
 """
 import cloudgenix
@@ -80,7 +81,9 @@ def createdicts(cgx_session):
         for site in sitelist:
             siteid_sitename[site['id']] = site['name']
             sitename_siteid[site['name']] = site['id']
-            siteid_policyid[site['id']] = site['security_policyset_id']
+            secid = site['security_policyset_id']
+            if secid is not None:
+                siteid_policyid[site['id']] = secid
     else:
         print("ERR: Could not query sites")
         cloudgenix.jd_detailed(resp)
@@ -505,13 +508,9 @@ def go():
                     print("INFO: No ZBFW logs found! Filer Used:\nSite:{}\nRules:{}\nAction:{}\nStart Time: {}\nEnd Time: {}".format(sitename,rulename,action,starttime,endtime))
 
 
-
-
             else:
                 print("ERR: Could not process Security Policy Set {}".format(policyid_policyname[policyid]))
                 cleanexit(cgx_session)
-
-
 
 
         else:
