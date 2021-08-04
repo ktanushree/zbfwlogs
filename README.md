@@ -1,11 +1,11 @@
-# CloudGenix Download ZBFW Logs
+# Prisma SDWAN (CloudGenix) Download ZBFW Logs
 This script is used to download ZBFW logs.
 
 #### Synopsis
 This script enables users to download ZBFW logs for a specified time period. The users have to provide a sitename. Filters such as rulename, action, starttime and endtime can also be used to fine tune the results.
 
 #### Requirements
-* Active CloudGenix Account
+* Active Prisma SDWAN (CloudGenix) Account
 * Python >= 2.7 or >=3.6
 * Python modules:
     * CloudGenix Python SDK >= 5.4.3b1 - <https://github.com/CloudGenix/sdk-python>
@@ -84,4 +84,4 @@ ZBFW Rule specific information:
 
 
 #### For more info
- * Get help and additional CloudGenix Documentation at <http://support.cloudgenix.com>
+ * Get help and additional Prisma SDWAN (CloudGenix) Documentation at <https://docs.paloaltonetworks.com/prisma/prisma-sd-wan.html>
